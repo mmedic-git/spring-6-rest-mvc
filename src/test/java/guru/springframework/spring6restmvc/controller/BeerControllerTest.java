@@ -1,8 +1,11 @@
 package guru.springframework.spring6restmvc.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.model.Beer;
 import guru.springframework.spring6restmvc.services.BeerService;
 import guru.springframework.spring6restmvc.services.BeerServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,6 +24,7 @@ import java.util.UUID;
 
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 // @SpringBootTest
@@ -37,10 +41,54 @@ class BeerControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
     @MockBean
     BeerService beerService;  //@MockBean provide-a automatski sve potrebne dependcies, inače bi došlo do exceptiona-a
 
-    BeerServiceImpl beerServiceImpl = new BeerServiceImpl();
+    BeerServiceImpl beerServiceImpl; //  = new BeerServiceImpl();ovo mičem jer sam dolje stavio @BeforeEach pa da ne radi 2 puta novi objekt
+
+    @BeforeEach
+    void setUp() {
+        beerServiceImpl = new BeerServiceImpl();
+    }
+
+    @Test
+    void testCreateNewBeer() throws Exception {
+
+        /*
+
+        Obzirom da smo gore stavili
+
+        @Autowired
+        ObjectMapper objectMapper;
+
+        onda ne trebamo više "ručno" instancirati novu objectMapper instancu. POdsjećam @Autowired sam pripremi sve da bi se objekt inicijalizirao unutar SpringBoot contexta.
+
+        ObjectMapper objectMapper = new ObjectMapper();  //testiramo dodavanje novog Beer objekta pomoću Jackson-a, JSON -> Java POJO and vice versa
+
+        objectMapper.findAndRegisterModules(); //bez ovoga bi dobili exception, Jackson ne bi znao hendlati LocalDatetime datatype
+
+        */
+
+        Beer    beer = beerServiceImpl.listBeers().get(0);
+        beer.setVersion(null);
+        beer.setId(null);
+
+        given(beerService.saveNewBeer(any(Beer.class))).willReturn(beerServiceImpl.listBeers().get(1)); //za svaki Beer ovjekt koji se proslijedi metoda
+
+
+        mockMvc.perform(post("/api/v1/beer")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(beer)))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"));
+
+        System.out.println(objectMapper.writeValueAsString(beer));
+
+    }
 
     @Test
     void testListBeers() throws Exception {
