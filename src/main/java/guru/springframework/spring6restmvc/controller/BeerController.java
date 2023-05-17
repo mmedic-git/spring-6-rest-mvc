@@ -54,7 +54,7 @@ public class BeerController {
         return new  ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping
+    @PostMapping(value = BEER_PATH)
     // @RequestMapping (method = RequestMethod.POST)  // @PostMapping je isto što i  @RequestMapping (method = RequestMethod.POST) samo kraće napisano :-)
     public ResponseEntity  handlePost(@RequestBody Beer beer)  {                    // sa @RequestBody kažemo da JSON BODY iz posta veže/mapira na varijablu beer (tipa Beer)
 
@@ -89,7 +89,7 @@ public class BeerController {
     // @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET)  //želimo da se ova metoda invoka samo za Get pozive, ostale ignoriraj
 
     @GetMapping(value = BEER_PATH_ID)
-    public Beer getBeerById(@PathVariable("beerID") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
+    public Beer getBeerById(@PathVariable("beerId") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
 
         log.debug("Get Beer by Id - in controller");
 
