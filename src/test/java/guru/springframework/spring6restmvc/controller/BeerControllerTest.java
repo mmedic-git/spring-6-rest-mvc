@@ -1,30 +1,30 @@
 package guru.springframework.spring6restmvc.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.model.Beer;
 import guru.springframework.spring6restmvc.services.BeerService;
 import guru.springframework.spring6restmvc.services.BeerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get; // ovo sam morao ručno dodati, nije pokupio automatski mockMvc.perform(get(...));
-
-import java.util.UUID;
-
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 // @SpringBootTest
@@ -43,7 +43,7 @@ class BeerControllerTest {
     MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    ObjectMapper objectMapper;          //kada autowire-amo objectMapper SpringBoot će nam provajdati runtime context
 
     @MockBean
     BeerService beerService;  //@MockBean provide-a automatski sve potrebne dependcies, inače bi došlo do exceptiona-a
@@ -69,7 +69,7 @@ class BeerControllerTest {
 
         ObjectMapper objectMapper = new ObjectMapper();  //testiramo dodavanje novog Beer objekta pomoću Jackson-a, JSON -> Java POJO and vice versa
 
-        objectMapper.findAndRegisterModules(); //bez ovoga bi dobili exception, Jackson ne bi znao hendlati LocalDatetime datatype
+        objectMapper.findAndRegisterModules(); //bez ovoga bi dobili exception, Jackson ne bi znao hendlati LocalDatetime datatype, ovako ih potraži po classpath-u
 
         */
 
@@ -80,7 +80,7 @@ class BeerControllerTest {
         given(beerService.saveNewBeer(any(Beer.class))).willReturn(beerServiceImpl.listBeers().get(1)); //za svaki Beer ovjekt koji se proslijedi metoda
 
 
-        mockMvc.perform(post("/api/v1/beer")
+        mockMvc.perform(post(BeerController.BEER_PATH)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(beer)))
                 .andExpect(status().isCreated())
@@ -89,12 +89,86 @@ class BeerControllerTest {
         System.out.println(objectMapper.writeValueAsString(beer));
 
     }
+    @Captor
+    ArgumentCaptor<Beer> beerArgumentCaptor;
+
+    @Captor
+    ArgumentCaptor<UUID>    uuidArgumentCaptor;
+
+    @Test
+    void testPatchBeer() throws  Exception{
+        Beer beer = beerServiceImpl.listBeers().get(0);
+
+        Map<String, Object> beerMap = new HashMap<>();
+        beerMap.put("beerName", "New Name");
+
+        mockMvc.perform(patch(BeerController.BEER_PATH + "/" + beer.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(beerMap)))
+                .andExpect(status().isNoContent());
+
+        verify(beerService).patchBeerById(uuidArgumentCaptor.capture(), beerArgumentCaptor.capture());
+
+        assertThat(beer.getId()).isEqualTo(uuidArgumentCaptor.getValue());
+
+        assertThat(beerMap.get("beerName")).isEqualTo(beerArgumentCaptor.getValue().getBeerName());
+
+
+    }
+
+
+    @Test
+    void testDeleteBeer() throws Exception {
+
+        Beer beer = beerServiceImpl.listBeers().get(0);
+
+        mockMvc.perform(delete(BeerController.BEER_PATH + "/" + beer.getId())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        // Mockito ima ArgumentCaptor klasu, koja može uloviti proslijeđeni argument za pojedini tip objekta
+        // ovo nam više ne treba jer smo gore deklarirali
+        // @Captor
+        // ArgumentCaptor<Beer> beerArgumentCaptor;
+        // umjesto eksplicitne deklaracije
+        // ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
+        verify(beerService).deleteBeerById(uuidArgumentCaptor.capture());
+
+
+
+        //provjeri da li se id piva podudara sa proslijeđenim utl-om, ako nisu isti dobit ćemo exception
+        assertThat(beer.getId()).isEqualTo(uuidArgumentCaptor.getValue());
+
+
+        // morali bi biti isti
+        System.out.println(uuidArgumentCaptor.getValue());  //ispiši ID izbrisanog beer objekta
+        System.out.println(beer.getId());
+
+
+
+
+    }
+
+    @Test
+     void testUpdateBeer() throws Exception{
+
+        Beer beer = beerServiceImpl.listBeers().get(0);
+
+        mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(beer)))
+                .andExpect(status().isNoContent());
+
+        verify(beerService).updateBeerById(any(UUID.class), any(Beer.class));
+    }
 
     @Test
     void testListBeers() throws Exception {
         given(beerService.listBeers()).willReturn(beerServiceImpl.listBeers());
 
-        mockMvc.perform(get("/api/v1/beer")
+        mockMvc.perform(get(BeerController.BEER_PATH )
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -113,7 +187,7 @@ class BeerControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders
                 // .get("/api/v1/beer/" +UUID.randomUUID())
-                .get("/api/v1/beer/" + testBeer.getId())
+                .get(BeerController.BEER_PATH + "/" + testBeer.getId())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))           //da postrožim malo uvjete testa, mora vratiti nešto što nije empty response

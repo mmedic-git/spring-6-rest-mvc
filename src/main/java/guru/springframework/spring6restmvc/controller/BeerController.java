@@ -18,12 +18,18 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/beer")  // ovdje smo na cijelu klasu postavili osnovno url za API
+// @RequestMapping("/api/v1/beer")  // ovdje smo na cijelu klasu postavili osnovno url za API
+// u varijanti refactoringa ovo mičemo jer sad imamo BEER_PATH i BEER_PATH_ID varijable, pa ne moramo postavljati "osnovni" path na razini cijele klase
 public class BeerController {
+
+    public static final  String BEER_PATH = "/api/v1/beer";
+
+    public static final String BEER_PATH_ID = BEER_PATH + "/{beerId}";
 
     private final BeerService beerService;
 
-    @PatchMapping("{beerId}")
+    //radimo refactoring preko constant varijabli @PatchMapping("{beerId}")
+    @PatchMapping(value = BEER_PATH_ID)
     public ResponseEntity updateBeerPatchById(@PathVariable("beerId") UUID beerId, @RequestBody Beer beer) {
 
         beerService.patchBeerById(beerId, beer);
@@ -31,14 +37,16 @@ public class BeerController {
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping("{beerId}")
+    // refactoring @DeleteMapping("{beerId}")
+    @DeleteMapping(value = BEER_PATH_ID)
     public ResponseEntity deleteByID(@PathVariable("beerId") UUID beerID) {
 
         beerService.deleteBeerById(beerID);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("{beerId}")
+    // @PutMapping("{beerId}")
+    @PutMapping(value = BEER_PATH_ID)
     public ResponseEntity updateById(@PathVariable("beerId") UUID beerID, @RequestBody Beer beer) {
 
         beerService.updateBeerById(beerID, beer);
@@ -67,17 +75,20 @@ public class BeerController {
         return new ResponseEntity(headers, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET)     // bolje da osnovni "RequestMapping" dignemo na "cijelu klasu", kao osnovni endpoint "/api/v1/beer", pa nam value ne treba,
+    //refactoring @RequestMapping(method = RequestMethod.GET)     // bolje da osnovni "RequestMapping" dignemo na "cijelu klasu", kao osnovni endpoint "/api/v1/beer", pa nam value ne treba,
                                                     // jer se automatski naslijeđuje "osnovni" mapping "/api/v1/beer"
                                                     // Dakle, isto je kao da piše : @RequestMapping(value = "/api/v1/beer/", method = RequestMethod.GET)
 
     // @RequestMapping("/api/v1/beer")      // dakle, ovime smo rekli spring da kad dobije ovakav url, odgovori na njega tako da pošalje listu piva iz "baze" odnosno Map kolekcije
+    @GetMapping(value = BEER_PATH) //možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
     public List<Beer> listBeers() {         // Jackson je iz "obične liste" piva proizveo JSON response
         return beerService.listBeers();
     }
 
-    @RequestMapping(value = "{beerID}", method = RequestMethod.GET)      //obzirom da naslijeđuje "osnovni dio", ostaje nam još samo parametar. To je ekvivalent @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET) da nema "osnovnog mapiranja" na razini klase
+    // refactoring @RequestMapping(value = "{beerID}", method = RequestMethod.GET)      //obzirom da naslijeđuje "osnovni dio", ostaje nam još samo parametar. To je ekvivalent @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET) da nema "osnovnog mapiranja" na razini klase
     // @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET)  //želimo da se ova metoda invoka samo za Get pozive, ostale ignoriraj
+
+    @GetMapping(value = BEER_PATH_ID)
     public Beer getBeerById(@PathVariable("beerID") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
 
         log.debug("Get Beer by Id - in controller");
