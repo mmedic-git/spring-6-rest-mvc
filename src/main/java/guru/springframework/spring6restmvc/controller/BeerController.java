@@ -22,13 +22,13 @@ import java.util.UUID;
 // u varijanti refactoringa ovo mičemo jer sad imamo BEER_PATH i BEER_PATH_ID varijable, pa ne moramo postavljati "osnovni" path na razini cijele klase
 public class BeerController {
 
-    public static final  String BEER_PATH = "/api/v1/beer";
+    public static final     String BEER_PATH = "/api/v1/beer";
 
-    public static final String BEER_PATH_ID = BEER_PATH + "/{beerId}";
+    public static final     String BEER_PATH_ID = BEER_PATH + "/{beerId}";
 
-    private final BeerService beerService;
+    private final           BeerService beerService;
 
-    //radimo refactoring preko constant varijabli @PatchMapping("{beerId}")
+    // radimo refactoring preko constant varijabli @PatchMapping("{beerId}")
     @PatchMapping(value = BEER_PATH_ID)
     public ResponseEntity updateBeerPatchById(@PathVariable("beerId") UUID beerId, @RequestBody Beer beer) {
 
@@ -88,11 +88,26 @@ public class BeerController {
     // refactoring @RequestMapping(value = "{beerID}", method = RequestMethod.GET)      //obzirom da naslijeđuje "osnovni dio", ostaje nam još samo parametar. To je ekvivalent @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET) da nema "osnovnog mapiranja" na razini klase
     // @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET)  //želimo da se ova metoda invoka samo za Get pozive, ostale ignoriraj
 
+    /*
+
+    napravit ćemo refactoring, umjesto lokalnog BeerController exception handlera, uvodimo globalni na razini ExceptionController klase
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity handleNotFoundException() {
+
+        System.out.println("In exception handler");
+
+        return ResponseEntity.notFound().build();  //ovim će nam test getBeerByIdNotFound() završit uspješno iz razloga što smo shendlali NotFoundException
+
+    }
+
+     */
+
     @GetMapping(value = BEER_PATH_ID)
     public Beer getBeerById(@PathVariable("beerId") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
 
         log.debug("Get Beer by Id - in controller");
 
-        return beerService.getBeerById(beerID);
+        return beerService.getBeerById(beerID).orElseThrow(NotFoundException::new);
     }
 }

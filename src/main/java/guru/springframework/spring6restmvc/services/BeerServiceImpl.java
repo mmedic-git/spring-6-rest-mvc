@@ -68,7 +68,7 @@ public class BeerServiceImpl implements BeerService {
 
 
     @Override
-    public Beer getBeerById(UUID id) {
+    public Optional<Beer> getBeerById(UUID id) {
 
         log.debug("Get Beer by Id - in service was called. Id: " + id.toString());
 
@@ -86,7 +86,7 @@ public class BeerServiceImpl implements BeerService {
 
          */
 
-        return beerMap.get(id);  // Milan Medić: Get metoda od Map klase nam vraća samo jedan element iz Map konekcije, ukoliko se vrijednost ključa id podudara sa predaniim argumentom
+        return Optional.of(beerMap.get(id));  // Milan Medić: Get metoda od Map klase nam vraća samo jedan element iz Map konekcije, ukoliko se vrijednost ključa id podudara sa predaniim argumentom
 
 
     }

@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,7 +103,9 @@ class BeerControllerTest {
         Map<String, Object> beerMap = new HashMap<>();
         beerMap.put("beerName", "New Name");
 
-        mockMvc.perform(patch(BeerController.BEER_PATH + "/" + beer.getId())
+        // i ovo ćemo refaktorirati
+        // mockMvc.perform(patch(BeerController.BEER_PATH + "/" + beer.getId())
+        mockMvc.perform(patch(BeerController.BEER_PATH_ID , beer.getId())  //sad će se beer.getId() bindati u BEER_PATH_ID automatski, jer postoji overloadana patch metoda koja može prihvatiti i ovakav način predaje argumenata
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(beerMap)))
@@ -123,7 +126,8 @@ class BeerControllerTest {
 
         Beer beer = beerServiceImpl.listBeers().get(0);
 
-        mockMvc.perform(delete(BeerController.BEER_PATH + "/" + beer.getId())
+        // mockMvc.perform(delete(BeerController.BEER_PATH + "/" + beer.getId())
+        mockMvc.perform(delete(BeerController.BEER_PATH_ID, beer.getId())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -155,7 +159,8 @@ class BeerControllerTest {
 
         Beer beer = beerServiceImpl.listBeers().get(0);
 
-        mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
+        // mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
+        mockMvc.perform(put(BeerController.BEER_PATH_ID,  beer.getId())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(beer)))
@@ -175,19 +180,34 @@ class BeerControllerTest {
                 .andExpect(jsonPath("$.length()",is(3)));      // obzirom da su svi UUID-ovi generirani na pokretanju, stavili smo uvjet da su u listi 3 piva, š
                                                                               // to znamo da jesu na inicijalizaciji programa
 
+        
+    }
+
+    @Test
+    void getBeerByIdNotFound() throws Exception {
+
+        // nakon refactoringa sa Optional
+        // given(beerService.getBeerById((any(UUID.class)))).willThrow(NotFoundException.class);
+
+        given(beerService.getBeerById((any(UUID.class)))).willReturn(Optional.empty());
+
+        mockMvc.perform(get(BeerController.BEER_PATH_ID, UUID.randomUUID()))
+                .andExpect(status().isNotFound());
 
     }
+
     @Test
     void getBeerById() throws Exception {
 
         Beer testBeer = beerServiceImpl.listBeers().get(0);
 
         // given(beerService.getBeerById(any(UUID.class))).willReturn(testBeer); //reći ćemo Mockito-u da za bilo koji UUID vrati naš odabrani test beer sa indeksom 0 iz liste
-        given(beerService.getBeerById(testBeer.getId())).willReturn(testBeer);
+        given(beerService.getBeerById(testBeer.getId())).willReturn(Optional.of(testBeer));
 
         mockMvc.perform(MockMvcRequestBuilders
                 // .get("/api/v1/beer/" +UUID.randomUUID())
-                .get(BeerController.BEER_PATH + "/" + testBeer.getId())
+                // .get(BeerController.BEER_PATH + "/" + testBeer.getId())
+                .get(BeerController.BEER_PATH_ID,testBeer.getId())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))           //da postrožim malo uvjete testa, mora vratiti nešto što nije empty response

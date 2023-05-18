@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,7 +66,9 @@ class CustomerControllerTest {
         Map<String, Object> customerMap = new HashMap<>();  // napravit ćemo HashMap iz koga ćemo simulirati JSON objekt
         customerMap.put("name", "New Name");
 
-        mockMvc.perform(patch(CustomerController.CUSTOMER_PATH+ "/" + customer.getId())
+        // refactoring
+        // mockMvc.perform(patch(CustomerController.CUSTOMER_PATH+ "/" + customer.getId())
+        mockMvc.perform(patch(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(customerMap))) //TRIK, koristimo Jackson da preko objectMappera pretvorimo HashMap u JSON
                 .andExpect(status().isNoContent());
@@ -83,7 +86,8 @@ class CustomerControllerTest {
     void testDeleteCustomer() throws Exception {
         Customer customer = customerServiceImpl.getAllCustomers().get(0);
 
-        mockMvc.perform(delete(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+        // mockMvc.perform(delete(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+        mockMvc.perform(delete(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -97,7 +101,8 @@ class CustomerControllerTest {
 
        Customer customer = customerServiceImpl.getAllCustomers().get(0);
 
-       mockMvc.perform(put(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+       // mockMvc.perform(put(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+        mockMvc.perform(put(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                .content(objectMapper.writeValueAsBytes(customer))
                .contentType(MediaType.APPLICATION_JSON)
                .accept(MediaType.APPLICATION_JSON))
@@ -136,14 +141,24 @@ class CustomerControllerTest {
     }
 
     @Test
+    void getCustomerByIdNotFound() throws Exception {
+        given(customerService.getCustomerById(any((UUID.class)))).willThrow(NotFoundException.class);
+
+        mockMvc.perform(get(CustomerController.CUSTOMER_PATH_ID, UUID.randomUUID()))
+                .andExpect(status().isNotFound());
+
+    }
+
+    @Test
     void getCustomerById() throws Exception {
 
         Customer customer = customerServiceImpl.getAllCustomers().get(0);
 
-        given(customerService.getCustomerById(customer.getId())).willReturn(customer);
+        given(customerService.getCustomerById(customer.getId())).willReturn(Optional.of(customer));
 
 
-        mockMvc.perform(get(CustomerController.CUSTOMER_PATH + "/" + customer.getId())
+        // mockMvc.perform(get(CustomerController.CUSTOMER_PATH + "/" + customer.getId())
+        mockMvc.perform(get(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                  .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

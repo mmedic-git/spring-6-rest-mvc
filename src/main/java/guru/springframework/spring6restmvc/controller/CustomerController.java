@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -72,7 +73,7 @@ public class CustomerController {
     // @RequestMapping(value = "{customerId}", method = RequestMethod.GET) //kad upotrijebimo vitičaste zagrade naznačujemo da se radi o path parametru u pozivu metode
     @GetMapping(value = CUSTOMER_PATH_ID)
     public Customer getCustomerById(@PathVariable("customerId") UUID id){
-        return customerService.getCustomerById(id);
+        return customerService.getCustomerById(id).orElseThrow(NotFoundException::new);
     }
 
 }
