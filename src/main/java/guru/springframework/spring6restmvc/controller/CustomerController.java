@@ -1,6 +1,6 @@
 package guru.springframework.spring6restmvc.controller;
 
-import guru.springframework.spring6restmvc.model.Customer;
+import guru.springframework.spring6restmvc.model.CustomerDTO;
 import guru.springframework.spring6restmvc.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -27,7 +26,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PatchMapping(CUSTOMER_PATH_ID)
-    public ResponseEntity patchCustomerById(@PathVariable("customerId") UUID customerId, @RequestBody Customer customer) {
+    public ResponseEntity patchCustomerById(@PathVariable("customerId") UUID customerId, @RequestBody CustomerDTO customer) {
 
         customerService.patchCustomerById(customerId, customer);
 
@@ -44,7 +43,7 @@ public class CustomerController {
     }
 
     @PutMapping(CUSTOMER_PATH_ID)
-    public ResponseEntity updateCustomerByID(@PathVariable("customerId") UUID customerId, @RequestBody Customer customer) {
+    public ResponseEntity updateCustomerByID(@PathVariable("customerId") UUID customerId, @RequestBody CustomerDTO customer) {
 
 
         customerService.updateCustomerById(customerId, customer);
@@ -54,9 +53,9 @@ public class CustomerController {
     }
 
     @PostMapping(value = CUSTOMER_PATH)
-    public ResponseEntity handlePost(@RequestBody Customer customer) { // uz anotaciju @RequestBody Spring će pokušati parsirati JSON objekt i mapirati ga na customer objekt
+    public ResponseEntity handlePost(@RequestBody CustomerDTO customer) { // uz anotaciju @RequestBody Spring će pokušati parsirati JSON objekt i mapirati ga na customer objekt
 
-        Customer savedCustomer = customerService.saveNewCustomer(customer);
+        CustomerDTO savedCustomer = customerService.saveNewCustomer(customer);
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -66,13 +65,13 @@ public class CustomerController {
     }
     // @RequestMapping(method = RequestMethod.GET)
     @GetMapping (value = CUSTOMER_PATH)
-    public List<Customer> listAllCustomers(){
+    public List<CustomerDTO> listAllCustomers(){
         return customerService.getAllCustomers();
     }
 
     // @RequestMapping(value = "{customerId}", method = RequestMethod.GET) //kad upotrijebimo vitičaste zagrade naznačujemo da se radi o path parametru u pozivu metode
     @GetMapping(value = CUSTOMER_PATH_ID)
-    public Customer getCustomerById(@PathVariable("customerId") UUID id){
+    public CustomerDTO getCustomerById(@PathVariable("customerId") UUID id){
         return customerService.getCustomerById(id).orElseThrow(NotFoundException::new);
     }
 

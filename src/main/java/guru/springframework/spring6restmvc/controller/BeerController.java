@@ -1,15 +1,12 @@
 package guru.springframework.spring6restmvc.controller;
 
-import guru.springframework.spring6restmvc.model.Beer;
+import guru.springframework.spring6restmvc.model.BeerDTO;
 import guru.springframework.spring6restmvc.services.BeerService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpLogging;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,7 +27,7 @@ public class BeerController {
 
     // radimo refactoring preko constant varijabli @PatchMapping("{beerId}")
     @PatchMapping(value = BEER_PATH_ID)
-    public ResponseEntity updateBeerPatchById(@PathVariable("beerId") UUID beerId, @RequestBody Beer beer) {
+    public ResponseEntity updateBeerPatchById(@PathVariable("beerId") UUID beerId, @RequestBody BeerDTO beer) {
 
         beerService.patchBeerById(beerId, beer);
 
@@ -47,7 +44,7 @@ public class BeerController {
 
     // @PutMapping("{beerId}")
     @PutMapping(value = BEER_PATH_ID)
-    public ResponseEntity updateById(@PathVariable("beerId") UUID beerID, @RequestBody Beer beer) {
+    public ResponseEntity updateById(@PathVariable("beerId") UUID beerID, @RequestBody BeerDTO beer) {
 
         beerService.updateBeerById(beerID, beer);
 
@@ -56,11 +53,11 @@ public class BeerController {
 
     @PostMapping(value = BEER_PATH)
     // @RequestMapping (method = RequestMethod.POST)  // @PostMapping je isto što i  @RequestMapping (method = RequestMethod.POST) samo kraće napisano :-)
-    public ResponseEntity  handlePost(@RequestBody Beer beer)  {                    // sa @RequestBody kažemo da JSON BODY iz posta veže/mapira na varijablu beer (tipa Beer)
+    public ResponseEntity  handlePost(@RequestBody BeerDTO beer)  {                    // sa @RequestBody kažemo da JSON BODY iz posta veže/mapira na varijablu beer (tipa Beer)
 
 
 
-        Beer savedBeer = beerService.saveNewBeer(beer);
+        BeerDTO savedBeer = beerService.saveNewBeer(beer);
 
         //nakon snimanja trebao bi dobiti neki id
         System.out.println(savedBeer);
@@ -81,7 +78,7 @@ public class BeerController {
 
     // @RequestMapping("/api/v1/beer")      // dakle, ovime smo rekli spring da kad dobije ovakav url, odgovori na njega tako da pošalje listu piva iz "baze" odnosno Map kolekcije
     @GetMapping(value = BEER_PATH) //možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
-    public List<Beer> listBeers() {         // Jackson je iz "obične liste" piva proizveo JSON response
+    public List<BeerDTO> listBeers() {         // Jackson je iz "obične liste" piva proizveo JSON response
         return beerService.listBeers();
     }
 
@@ -104,7 +101,7 @@ public class BeerController {
      */
 
     @GetMapping(value = BEER_PATH_ID)
-    public Beer getBeerById(@PathVariable("beerId") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
+    public BeerDTO getBeerById(@PathVariable("beerId") UUID beerID) {  // možda bi Spring i sam matchirao beerID varijable iz @RequestMappinga i ovu dolje, ali bolje mu eksplicitno to naznačiti preko @PathVariable
 
         log.debug("Get Beer by Id - in controller");
 
