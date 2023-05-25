@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 
@@ -24,8 +25,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Beer {
 
-    // @Id
-    @EmbeddedId
+
+    @jakarta.persistence.Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(length = 36, columnDefinition = "varchar", updatable = false, nullable = false)
@@ -33,6 +34,7 @@ public class Beer {
 
     @Version
     private Integer version;
+
     private String beerName;
     private BeerStyle beerStyle;
     private String upc;
