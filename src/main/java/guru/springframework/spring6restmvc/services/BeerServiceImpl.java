@@ -112,7 +112,7 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public void updateBeerById(UUID beerID, BeerDTO beer) {
+    public Optional<BeerDTO> updateBeerById(UUID beerID, BeerDTO beer) {
 
         BeerDTO existingBeer = beerMap.get(beerID);
 
@@ -123,12 +123,16 @@ public class BeerServiceImpl implements BeerService {
 
         beerMap.put(existingBeer.getId(), existingBeer);
 
+        return  Optional.of(existingBeer);
+
     }
 
     @Override
-    public void deleteBeerById(UUID beerID) {
+    public Boolean deleteBeerById(UUID beerID) {
 
         beerMap.remove(beerID);
+
+        return true;
 
     }
 

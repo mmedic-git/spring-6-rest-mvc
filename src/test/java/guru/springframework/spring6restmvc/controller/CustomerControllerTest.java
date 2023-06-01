@@ -84,9 +84,10 @@ class CustomerControllerTest {
     void testDeleteCustomer() throws Exception {
         CustomerDTO customer = customerServiceImpl.getAllCustomers().get(0);
 
-        // mockMvc.perform(delete(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+        given(customerService.deleteCustomerById(any())).willReturn(true);
+
         mockMvc.perform(delete(CustomerController.CUSTOMER_PATH_ID, customer.getId())
-                .accept(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
         verify(customerService).deleteCustomerById(uuidArgumentCaptor.capture());
@@ -96,18 +97,26 @@ class CustomerControllerTest {
 
     @Test
     void testUpdateCustomer() throws Exception {
+        CustomerDTO customer = customerServiceImpl.getAllCustomers().get(0);
 
-       CustomerDTO customer = customerServiceImpl.getAllCustomers().get(0);
+        given(customerService.updateCustomerById(any(), any())).willReturn(Optional.of(CustomerDTO.builder()
+                .build()));
 
-       // mockMvc.perform(put(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+        // mockMvc.perform(put(CustomerController.CUSTOMER_PATH + "/" +customer.getId())
+
         mockMvc.perform(put(CustomerController.CUSTOMER_PATH_ID, customer.getId())
-               .content(objectMapper.writeValueAsBytes(customer))
-               .contentType(MediaType.APPLICATION_JSON)
-               .accept(MediaType.APPLICATION_JSON))
-               .andExpect(status().isNoContent());
+                        .content(objectMapper.writeValueAsString(customer))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
 
-       verify(customerService).updateCustomerById(any(UUID.class), any(CustomerDTO.class));
+        verify(customerService).updateCustomerById(uuidArgumentCaptor.capture(), any(CustomerDTO.class));
+
+        assertThat(customer.getId()).isEqualTo(uuidArgumentCaptor.getValue());
     }
+
+
+
 
     @Test
     void testCreateCustomer() throws Exception {

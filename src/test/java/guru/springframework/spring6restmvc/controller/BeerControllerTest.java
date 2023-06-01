@@ -66,7 +66,7 @@ class BeerControllerTest {
         @Autowired
         ObjectMapper objectMapper;
 
-        onda ne trebamo više "ručno" instancirati novu objectMapper instancu. POdsjećam @Autowired sam pripremi sve da bi se objekt inicijalizirao unutar SpringBoot contexta.
+        onda ne trebamo više "ručno" instancirati novu objectMapper instancu. POdsjećam @Autowired sam pripremi sve da bi se objekt inicijalizirao unutar SpringBoot context-a.
 
         ObjectMapper objectMapper = new ObjectMapper();  //testiramo dodavanje novog Beer objekta pomoću Jackson-a, JSON -> Java POJO and vice versa
 
@@ -126,6 +126,8 @@ class BeerControllerTest {
 
         BeerDTO beer = beerServiceImpl.listBeers().get(0);
 
+        given(beerService.deleteBeerById(any())).willReturn(true);
+
         // mockMvc.perform(delete(BeerController.BEER_PATH + "/" + beer.getId())
         mockMvc.perform(delete(BeerController.BEER_PATH_ID, beer.getId())
                 .accept(MediaType.APPLICATION_JSON))
@@ -158,6 +160,8 @@ class BeerControllerTest {
      void testUpdateBeer() throws Exception{
 
         BeerDTO beer = beerServiceImpl.listBeers().get(0);
+
+        given(beerService.updateBeerById(any(), any())).willReturn(Optional.of(beer));  //ovo je neki trik, da se ne mora zapravo napraviti pravi update, nego samo vratiti objekt -> NIJE MI OVO BAŠ JASNO, ali bez toga puca
 
         // mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
         mockMvc.perform(put(BeerController.BEER_PATH_ID,  beer.getId())

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,17 +37,40 @@ public class BeerServiceJPA implements BeerService {
 
     @Override
     public BeerDTO saveNewBeer(BeerDTO beer) {
-        return null;
+        return beerMapper.beerToBeerDTO(beerRepository.save(beerMapper.beerDtoToBeer(beer)));
     }
 
     @Override
-    public void updateBeerById(UUID beerID, BeerDTO beer) {
+    public Optional<BeerDTO> updateBeerById(UUID beerID, BeerDTO beer) {
+        AtomicReference<Optional<BeerDTO>> atomicReference = new AtomicReference<>();
 
+        beerRepository.findById(beerID).ifPresentOrElse(foundBeer -> {        //happy path, nađi po ID i ako ga nađeš update-aj ime, stil, upc, price te snimi u "bazu"
+            foundBeer.setBeerName(beer.getBeerName());
+            foundBeer.setBeerStyle(beer.getBeerStyle());
+            foundBeer.setUpc(beer.getUpc());
+            foundBeer.setPrice(beer.getPrice());
+            // beerRepository.save(foundBeer);
+
+            atomicReference.set(Optional.of(beerMapper.beerToBeerDTO(beerRepository.save(foundBeer))));
+
+
+
+        }, () -> {
+            atomicReference.set(Optional.empty());  // unhappy path
+        } );
+
+        return atomicReference.get();
     }
 
     @Override
-    public void deleteBeerById(UUID beerID) {
+    public Boolean deleteBeerById(UUID beerID) {
 
+        if(beerRepository.existsById(beerID)){
+            beerRepository.deleteById(beerID);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

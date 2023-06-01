@@ -41,7 +41,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
 
 
-        //mmeorijska mapa, u kojoj držimo podatke, u real life verziji bi tu bili podaci iz baze podataka ili tako nečega
+        //memorijska mapa, u kojoj držimo podatke, u real life verziji bi tu bili podaci iz baze podataka ili tako nečega
         customerMap = new HashMap<>();
         customerMap.put(customer1.getId(), customer1);
         customerMap.put(customer2.getId(), customer2);
@@ -77,26 +77,32 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void updateCustomerById(UUID customerId, CustomerDTO customer) {
+    public Optional<CustomerDTO> updateCustomerById(UUID customerId, CustomerDTO customer) {
 
         CustomerDTO existingCustomer = customerMap.get(customerId);
         existingCustomer.setName(customer.getName());
+        return Optional.of(existingCustomer);
+
         // customerMap.put(customerId, existingCustomer);  // ovaj dio čak i ne treba, može se i bez toga, jer se Map-a automatski updajeta
     }
 
     @Override
-    public void deleteCustomerById(UUID customerId) {
+    public Boolean deleteCustomerById(UUID customerId) {
         customerMap.remove(customerId);
+
+        return true;
     }
 
     @Override
-    public void patchCustomerById(UUID customerId, CustomerDTO customer) {
+    public Optional<CustomerDTO> patchCustomerById(UUID customerId, CustomerDTO customer) {
 
         CustomerDTO existingCustomer = customerMap.get(customerId);
 
         if (StringUtils.hasText(customer.getName())) {
             existingCustomer.setName(customer.getName());
         }
+
+        return Optional.of(existingCustomer);
 
     }
 }
