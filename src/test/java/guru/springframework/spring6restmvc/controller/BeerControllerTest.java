@@ -57,6 +57,18 @@ class BeerControllerTest {
     }
 
     @Test
+    void testCreateBeerNullBeerName() throws Exception {
+        BeerDTO beerDTO = BeerDTO.builder().build();  //napravi prazan objekt
+
+        given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers().get(1));
+
+        mockMvc.perform(post(BeerController.BEER_PATH)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(beerDTO))).andExpect(status().isBadRequest());  // prije nego smo uveli validaciju podataka, ova metoda je fejlala, odnosno upis praznog objekta "u bazu" je prolazio uspješno
+    }
+
+    @Test
     void testCreateNewBeer() throws Exception {
 
         /*
