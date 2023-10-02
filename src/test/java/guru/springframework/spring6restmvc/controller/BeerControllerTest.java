@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.HashMap;
@@ -62,10 +63,23 @@ class BeerControllerTest {
 
         given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers().get(1));
 
+        /* idemo cijelu priču napravit malo informativniju sa MvcResult, da javimo calleru gdje je problem
         mockMvc.perform(post(BeerController.BEER_PATH)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(beerDTO))).andExpect(status().isBadRequest());  // prije nego smo uveli validaciju podataka, ova metoda je fejlala, odnosno upis praznog objekta "u bazu" je prolazio uspješno
+
+         */
+
+        MvcResult mvcResult = mockMvc.perform(post(BeerController.BEER_PATH)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(beerDTO)))
+                .andExpect(jsonPath("$.length()", is(6)))   // 2 jer očekujem ovakav output "[{"beerName":"must not be null"},{"beerName":"must not be blank"}]"
+                                    .andExpect(status().isBadRequest()).andReturn();  // prije nego smo uveli validaciju podataka, ova metoda je fejlala, odnosno upis praznog objekta "u bazu" je prolazio uspješno
+
+        System.out.println(mvcResult.getResponse().getContentAsString());
+
     }
 
     @Test
@@ -117,7 +131,7 @@ class BeerControllerTest {
 
         // i ovo ćemo refaktorirati
         // mockMvc.perform(patch(BeerController.BEER_PATH + "/" + beer.getId())
-        mockMvc.perform(patch(BeerController.BEER_PATH_ID , beer.getId())  //sad će se beer.getId() bindati u BEER_PATH_ID automatski, jer postoji overloadana patch metoda koja može prihvatiti i ovakav način predaje argumenata
+        mockMvc.perform(patch(BeerController.BEER_PATH_ID , beer.getId())  //sad će se beer.getId() bindati u BEER_PATH_ID automatski, jer postoji overload-ana patch metoda koja može prihvatiti i ovakav način predaje argumenata
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(beerMap)))
@@ -183,6 +197,26 @@ class BeerControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(beerService).updateBeerById(any(UUID.class), any(BeerDTO.class));
+    }
+
+
+    @Test
+    void testUpdateBeerBlankName() throws Exception {
+
+        BeerDTO beer = beerServiceImpl.listBeers().get(0);
+        beer.setBeerName(""); //namjerno podmetnemo empty string
+
+        given(beerService.updateBeerById(any(), any())).willReturn(Optional.of(beer));  //ovo je neki trik, da se ne mora zapravo napraviti pravi update, nego samo vratiti objekt -> NIJE MI OVO BAŠ JASNO, ali bez toga puca
+
+        // mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
+        mockMvc.perform(put(BeerController.BEER_PATH_ID,  beer.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(beer)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.length()", is(1)));
+
+        // ovo nam ne treba za test "blank name" verify(beerService).updateBeerById(any(UUID.class), any(BeerDTO.class));
     }
 
     @Test

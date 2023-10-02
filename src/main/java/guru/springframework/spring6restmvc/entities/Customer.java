@@ -3,6 +3,8 @@ package guru.springframework.spring6restmvc.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.Version;
 
 import java.time.LocalDateTime;
@@ -34,11 +36,12 @@ public class Customer {
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator"
     )
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id",
             updatable = false,
             nullable = false,
             length = 36,
-            columnDefinition = "varchar")
+            columnDefinition = "varchar(36)")
 
     private UUID id;
 
