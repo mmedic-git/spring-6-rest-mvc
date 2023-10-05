@@ -47,6 +47,11 @@ public class Customer {
 
     private String name;
 
+
+    @Column (length = 255)
+    private String email;
+
+
     /*
     @Version anotacija je potrebna interno za Hibernate versioning, kreće od 0 i inkrementira se postupno.
     Hibernate koristi taj property za usporedbu sa vrijednošću iz baze da li je neki drugi proces mijenjao zapis u bazi i ako jest, baci Exception.
