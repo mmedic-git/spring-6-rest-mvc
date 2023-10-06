@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.entities.Beer;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repositories.BeerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,12 +62,29 @@ class BeerControllerIT {
     @Test
     void testListBeersByName() throws Exception {
 
+
+        //ovo će preko BeerControllera automatski gađati implementaciju  BeerService klase koja je označena kao @Primary, a to je ona iz BeerServiceJPA, koja radi s podacima
+        // iz mysql baze podataka. Originalna BeerServiceImpl klasa radi sa podacima iz H2 memory baze i sadrži samo 3 piva koje smo ručno dodali
+
         mockMvc.perform(get(BeerController.BEER_PATH)
                 .queryParam("beerName", "IPA"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(100)));
+                .andExpect(jsonPath("$.size()", is(336)));
     }
 
+
+    @Test
+    void testListBeersByStyle() throws Exception {
+
+
+        //ovo će preko BeerControllera automatski gađati implementaciju  BeerService klase koja je označena kao @Primary, a to je ona iz BeerServiceJPA, koja radi s podacima
+        // iz mysql baze podataka. Originalna BeerServiceImpl klasa radi sa podacima iz H2 memory baze i sadrži samo 3 piva koje smo ručno dodali
+
+        mockMvc.perform(get(BeerController.BEER_PATH)
+                        .queryParam("beerStyle", BeerStyle.IPA.name()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(548)));
+    }
 
 
     @Test
@@ -202,7 +220,7 @@ class BeerControllerIT {
 
     @Test
     void testListBeers() {
-        List<BeerDTO>   dtos = beerController.listBeers();
+        List<BeerDTO>   dtos = beerController.listBeers(null, null);  //zbog dodavanja beerName parametra moramo dodati null da zadovoljimo formu
 
         assertThat(dtos.size()).isEqualTo(2413);
         
@@ -214,7 +232,7 @@ class BeerControllerIT {
     void testEmptyList() {
         beerRepository.deleteAll();
 
-        List<BeerDTO>   dtos = beerController.listBeers();
+        List<BeerDTO>   dtos = beerController.listBeers(null, null);
 
         assertThat(dtos.size()).isEqualTo(0);
     }

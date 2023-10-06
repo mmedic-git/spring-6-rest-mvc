@@ -1,6 +1,7 @@
 package guru.springframework.spring6restmvc.controller;
 
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,9 +85,20 @@ public class BeerController {
                                                     // Dakle, isto je kao da piše : @RequestMapping(value = "/api/v1/beer/", method = RequestMethod.GET)
 
     // @RequestMapping("/api/v1/beer")      // dakle, ovime smo rekli spring da kad dobije ovakav url, odgovori na njega tako da pošalje listu piva iz "baze" odnosno Map kolekcije
+
+    // modificiramo kod da dodamo query parametar beerName
+
     @GetMapping(value = BEER_PATH) //možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
+    public List<BeerDTO> listBeers(@RequestParam(name="beerName", required=false) String beerName, @RequestParam(required = false) BeerStyle beerStyle) {         // Jackson je iz "obične liste" piva proizveo JSON response
+            return beerService.listBeers(beerName, beerStyle);
+
+    /*
+    originalna implementacija je vraćala kompletnu listu piva, bez mogućnosti query-ja
+
     public List<BeerDTO> listBeers() {         // Jackson je iz "obične liste" piva proizveo JSON response
         return beerService.listBeers();
+    */
+
     }
 
     // refactoring @RequestMapping(value = "{beerID}", method = RequestMethod.GET)      //obzirom da naslijeđuje "osnovni dio", ostaje nam još samo parametar. To je ekvivalent @RequestMapping(value = "/api/v1/beer/{beerID}", method = RequestMethod.GET) da nema "osnovnog mapiranja" na razini klase
