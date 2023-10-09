@@ -26,23 +26,32 @@ public class BeerServiceJPA implements BeerService {
     private final BeerMapper beerMapper;
 
     @Override
-    public List<BeerDTO> listBeers(String beerName, BeerStyle beerStyle) {
+    public List<BeerDTO> listBeers(String beerName, BeerStyle beerStyle, Boolean showInventory) {
 
         List<Beer> beerList;
 
         if (StringUtils.hasText(beerName) && beerStyle == null) {
 
-            //do filtering implementation
             beerList = listBeersByName(beerName);
         }
 
-        else if (!StringUtils.hasText(beerName) && (beerStyle != null))  {
-
+        else if (!StringUtils.hasText(beerName) && (beerStyle != null)) {
             beerList = listBeersByStyle(beerStyle);
-
         }
+
+        else if (StringUtils.hasText(beerName) && (beerStyle != null)) {
+
+            beerList = listBeersByBeersNameAndStyle (beerName, beerStyle);
+
+            }
+
         else {
             beerList = beerRepository.findAll();
+        }
+
+        if (showInventory != null && !showInventory) {
+
+            beerList.forEach(beer -> beer.setQuantityOnHand(null));
         }
 
 
@@ -51,6 +60,11 @@ public class BeerServiceJPA implements BeerService {
         return beerList.stream()
                 .map(beerMapper::beerToBeerDTO)
                 .collect(Collectors.toList());  // vrati kao listu
+    }
+
+    private List<Beer> listBeersByBeersNameAndStyle(String beerName, BeerStyle beerStyle) {
+
+        return beerRepository.findAllByBeerNameIsLikeIgnoreCaseAndBeerStyle("%" + beerName + "%", beerStyle);
     }
 
     private List<Beer> listBeersByStyle(BeerStyle beerStyle) {

@@ -61,7 +61,7 @@ class BeerControllerTest {
     void testCreateBeerNullBeerName() throws Exception {
         BeerDTO beerDTO = BeerDTO.builder().build();  //napravi prazan objekt
 
-        given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers(null, null).get(1));
+        given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers(null, null, false).get(1));
 
         /* idemo cijelu priču napravit malo informativniju sa MvcResult, da javimo calleru gdje je problem
         mockMvc.perform(post(BeerController.BEER_PATH)
@@ -100,11 +100,11 @@ class BeerControllerTest {
 
         */
 
-        BeerDTO beer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO beer = beerServiceImpl.listBeers(null, null, false).get(0);
         beer.setVersion(null);
         beer.setId(null);
 
-        given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers(null, null).get(1)); //za svaki Beer ovjekt koji se proslijedi metoda
+        given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers(null, null, false).get(1)); //za svaki Beer ovjekt koji se proslijedi metoda
 
 
         mockMvc.perform(post(BeerController.BEER_PATH)
@@ -124,7 +124,7 @@ class BeerControllerTest {
 
     @Test
     void testPatchBeer() throws  Exception{
-        BeerDTO beer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO beer = beerServiceImpl.listBeers(null, null, false).get(0);
 
         Map<String, Object> beerMap = new HashMap<>();
         beerMap.put("beerName", "New Name");
@@ -150,7 +150,7 @@ class BeerControllerTest {
     @Test
     void testDeleteBeer() throws Exception {
 
-        BeerDTO beer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO beer = beerServiceImpl.listBeers(null, null, false).get(0);
 
         given(beerService.deleteBeerById(any())).willReturn(true);
 
@@ -185,7 +185,7 @@ class BeerControllerTest {
     @Test
      void testUpdateBeer() throws Exception{
 
-        BeerDTO beer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO beer = beerServiceImpl.listBeers(null, null, false).get(0);
 
         given(beerService.updateBeerById(any(), any())).willReturn(Optional.of(beer));  //ovo je neki trik, da se ne mora zapravo napraviti pravi update, nego samo vratiti objekt -> NIJE MI OVO BAŠ JASNO, ali bez toga puca
 
@@ -203,7 +203,7 @@ class BeerControllerTest {
     @Test
     void testUpdateBeerBlankName() throws Exception {
 
-        BeerDTO beer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO beer = beerServiceImpl.listBeers(null, null, false).get(0);
         beer.setBeerName(""); //namjerno podmetnemo empty string
 
         given(beerService.updateBeerById(any(), any())).willReturn(Optional.of(beer));  //ovo je neki trik, da se ne mora zapravo napraviti pravi update, nego samo vratiti objekt -> NIJE MI OVO BAŠ JASNO, ali bez toga puca
@@ -221,7 +221,7 @@ class BeerControllerTest {
 
     @Test
     void testListBeers() throws Exception {
-        given(beerService.listBeers(null, null)).willReturn(beerServiceImpl.listBeers(null, null));
+        given(beerService.listBeers(any(), any(), any())).willReturn(beerServiceImpl.listBeers(null, null, false));
 
         mockMvc.perform(get(BeerController.BEER_PATH )
                 .accept(MediaType.APPLICATION_JSON))
@@ -249,7 +249,7 @@ class BeerControllerTest {
     @Test
     void getBeerById() throws Exception {
 
-        BeerDTO testBeer = beerServiceImpl.listBeers(null, null).get(0);
+        BeerDTO testBeer = beerServiceImpl.listBeers(null, null, false).get(0);
 
         // given(beerService.getBeerById(any(UUID.class))).willReturn(testBeer); //reći ćemo Mockito-u da za bilo koji UUID vrati naš odabrani test beer sa indeksom 0 iz liste
         given(beerService.getBeerById(testBeer.getId())).willReturn(Optional.of(testBeer));

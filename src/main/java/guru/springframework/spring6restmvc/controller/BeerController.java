@@ -89,8 +89,12 @@ public class BeerController {
     // modificiramo kod da dodamo query parametar beerName
 
     @GetMapping(value = BEER_PATH) //možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
-    public List<BeerDTO> listBeers(@RequestParam(name="beerName", required=false) String beerName, @RequestParam(required = false) BeerStyle beerStyle) {         // Jackson je iz "obične liste" piva proizveo JSON response
-            return beerService.listBeers(beerName, beerStyle);
+    public List<BeerDTO> listBeers(@RequestParam(name = "beerName", required = false) String beerName,
+                                   @RequestParam(required = false) BeerStyle beerStyle,
+                                   @RequestParam(required = false) Boolean showInventory) {
+
+            // Jackson je iz "obične liste" piva proizveo JSON response
+            return beerService.listBeers(beerName, beerStyle, showInventory);
 
     /*
     originalna implementacija je vraćala kompletnu listu piva, bez mogućnosti query-ja
