@@ -5,13 +5,13 @@ import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -22,7 +22,6 @@ import java.util.UUID;
 public class BeerController {
 
     public static final     String BEER_PATH = "/api/v1/beer";
-
     public static final     String BEER_PATH_ID = BEER_PATH + "/{beerId}";
 
     private final           BeerService beerService;
@@ -88,13 +87,16 @@ public class BeerController {
 
     // modificiramo kod da dodamo query parametar beerName
 
-    @GetMapping(value = BEER_PATH) //možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
-    public List<BeerDTO> listBeers(@RequestParam(name = "beerName", required = false) String beerName,
+    @GetMapping(value = BEER_PATH) // možemo korisitit @GetMapping umjesto @RequestMapping(method = RequestMethod.GET)
+    // 10.10.2023 - refaktoriram listBeers metodu da umjesto liste vraća Page tipove objekata
+    public Page<BeerDTO> listBeers(@RequestParam(name = "beerName", required = false) String beerName,
                                    @RequestParam(required = false) BeerStyle beerStyle,
-                                   @RequestParam(required = false) Boolean showInventory) {
+                                   @RequestParam(required = false) Boolean showInventory,
+                                   @RequestParam(required = false) Integer pageNumber,
+                                   @RequestParam(required = false) Integer pageSize) {
 
             // Jackson je iz "obične liste" piva proizveo JSON response
-            return beerService.listBeers(beerName, beerStyle, showInventory);
+            return beerService.listBeers(beerName, beerStyle, showInventory, pageNumber, pageSize);
 
     /*
     originalna implementacija je vraćala kompletnu listu piva, bez mogućnosti query-ja
