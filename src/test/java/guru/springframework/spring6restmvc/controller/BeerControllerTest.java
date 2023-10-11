@@ -227,7 +227,7 @@ class BeerControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.length()",is(3)));      // obzirom da su svi UUID-ovi generirani na pokretanju, stavili smo uvjet da su u listi 3 piva, š
+                .andExpect(jsonPath("$.content.length()",is(3)));      // obzirom da su svi UUID-ovi generirani na pokretanju, stavili smo uvjet da su u listi 3 piva, š
                                                                               // to znamo da jesu na inicijalizaciji programa
 
         

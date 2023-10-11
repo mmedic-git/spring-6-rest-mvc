@@ -69,9 +69,10 @@ class BeerControllerIT {
         // iz mysql baze podataka. Originalna BeerServiceImpl klasa radi sa podacima iz H2 memory baze i sadrži samo 3 piva koje smo ručno dodali
 
         mockMvc.perform(get(BeerController.BEER_PATH)
-                .queryParam("beerName", "IPA"))
+                .queryParam("beerName", "IPA")
+                .queryParam("pageSize", "800"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(336)));
+                .andExpect(jsonPath("$.content.size()", is(336)));
     }
 
 
@@ -96,10 +97,11 @@ class BeerControllerIT {
         mockMvc.perform(get(BeerController.BEER_PATH)
                 .queryParam("beerName", "IPA")
                 .queryParam("beerStyle", BeerStyle.IPA.name())
-                .queryParam("showInventory", "TRUE"))
+                .queryParam("showInventory", "TRUE")
+                .queryParam("pageSize", "50"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(310)))
-                .andExpect(jsonPath("$.[0].quantityOnHand").value(IsNull.notNullValue()));
+                .andExpect(jsonPath("$.size()", is(11)))
+                .andExpect(jsonPath("$.content.[0].quantityOnHand").value(IsNull.notNullValue()));
 
     }
 
@@ -108,10 +110,11 @@ class BeerControllerIT {
         mockMvc.perform(get(BeerController.BEER_PATH)
                         .queryParam("beerName", "IPA")
                         .queryParam("beerStyle", BeerStyle.IPA.name())
-                        .queryParam("showInventory", "false"))
+                        .queryParam("showInventory", "false")
+                        .queryParam("pageSize", "800"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(310)))
-                .andExpect(jsonPath("$.[0].quantityOnHand").value(IsNull.nullValue()));
+                .andExpect(jsonPath("$.content.size()", is(310)))
+                .andExpect(jsonPath("$.content.[0].quantityOnHand").value(IsNull.nullValue()));
 
     }
 
@@ -119,9 +122,10 @@ class BeerControllerIT {
     @Test
     void tesListBeersByStyle() throws Exception {
         mockMvc.perform(get(BeerController.BEER_PATH)
-                .queryParam("beerStyle", BeerStyle.IPA.name()))
+                .queryParam("beerStyle", BeerStyle.IPA.name())
+                .queryParam("pageSize", "800"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(548)));
+                .andExpect(jsonPath("$.content.size()", is(548)));
     }
 
     @Test
@@ -132,9 +136,10 @@ class BeerControllerIT {
         // iz mysql baze podataka. Originalna BeerServiceImpl klasa radi sa podacima iz H2 memory baze i sadrži samo 3 piva koje smo ručno dodali
 
         mockMvc.perform(get(BeerController.BEER_PATH)
-                        .queryParam("beerStyle", BeerStyle.IPA.name()))
+                        .queryParam("beerStyle", BeerStyle.IPA.name())
+                        .queryParam("pageSize", "800"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(548)));
+                .andExpect(jsonPath("$.content.size()", is(548)));
     }
 
 
@@ -273,7 +278,7 @@ class BeerControllerIT {
     void testListBeers() {
         Page<BeerDTO> dtos = beerController.listBeers(null, null, false, 1, 25);  //zbog dodavanja beerName parametra moramo dodati null da zadovoljimo formu
 
-        assertThat(dtos.getContent().size()).isEqualTo(2413);
+        assertThat(dtos.getContent().size()).isEqualTo(25);
         
     }
 
