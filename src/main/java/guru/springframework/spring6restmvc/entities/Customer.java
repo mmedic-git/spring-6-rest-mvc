@@ -8,10 +8,11 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.Version;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.UUID;
 
 //
-// @Data zna biti performansno problematičan pa ćemo radije smanjiti scopre Lombok generiranja koda sa @Getter i @Setter
+// @Data zna biti performansno problematičan pa ćemo radije smanjiti scope Lombok generiranja koda sa @Getter i @Setter
 
 // Milan Medić: Lombok @Data Generates getters for all fields, a useful toString method, and hashCode and equals implementations that check all non-transient fields. Will also generate setters for all non-final fields, as well as a constructor.
 
@@ -61,5 +62,11 @@ public class Customer {
 
     private LocalDateTime createdDate;
     private LocalDateTime updateDate;
+
+    @Builder.Default //svrha ovoga je da Lombok osigura defaultni empty HashSet<> kod inicijalizacije Set-a
+    @OneToMany(mappedBy = "customer")
+    // ovaj Set nije import org.hibernate.mapping.Set nego java.util.Set
+    // ovdje smo uspostavili relaciju prema BeerOrder POJO objektu na kolonu Customer, one na strani Customera, many na strani BeerOrder-a
+    private java.util.Set<BeerOrder> beerOrders = new HashSet<>();
 
 }

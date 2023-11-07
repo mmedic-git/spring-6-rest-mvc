@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -99,7 +100,10 @@ public class BeerServiceJPA implements BeerService {
             }
         }
 
-        return PageRequest.of(queryPageNUmber, queryPageSize);
+        Sort sort = Sort.by(Sort.Order.asc("beerName"));
+
+
+        return PageRequest.of(queryPageNUmber, queryPageSize, sort);
     }
 
     private Page<Beer> listBeersByBeersNameAndStyle(String beerName, BeerStyle beerStyle, org.springframework.data.domain.Pageable pageable) {
@@ -129,7 +133,21 @@ public class BeerServiceJPA implements BeerService {
 
     @Override
     public Optional<BeerDTO> updateBeerById(UUID beerID, BeerDTO beer) {
+
+
+        /* da probamo izazvati optimitic locking exception
+
+        return Optional.of(beerMapper.beerToBeerDTO(
+                beerRepository.save(beerMapper.beerDtoToBeer(beer))
+        ));
+
+        */
+
+
+
+
         AtomicReference<Optional<BeerDTO>> atomicReference = new AtomicReference<>();
+
 
         beerRepository.findById(beerID).ifPresentOrElse(foundBeer -> {        //happy path, nađi po ID i ako ga nađeš update-aj ime, stil, upc, price te snimi u "bazu"
             foundBeer.setBeerName(beer.getBeerName());
@@ -146,6 +164,8 @@ public class BeerServiceJPA implements BeerService {
         } );
 
         return atomicReference.get();
+
+
     }
 
     @Override
