@@ -71,7 +71,7 @@ class BeerRepositoryTest {
 
         Beer savedBeer = beerRepository.save(Beer.builder()
                         .id(UUID.randomUUID())
-                .beerName("My Beer")
+                        .beerName("My Beer")
                         .beerStyle(BeerStyle.PALE_ALE)      //stavili smo @NotNull i @NotBlank data validaciju na Style, upc i price pa ih moramo setirati
                         .upc("2323232323")
                         .price(new BigDecimal("11.99"))

@@ -1,6 +1,7 @@
 package guru.springframework.spring6restmvc.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.springframework.spring6restmvc.config.SpringSecConfig;
 import guru.springframework.spring6restmvc.model.BeerDTO;
 import guru.springframework.spring6restmvc.services.BeerService;
 import guru.springframework.spring6restmvc.services.BeerServiceImpl;
@@ -11,6 +12,7 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,6 +28,7 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(BeerController.class)   //ovo sam promijenio 8.5.2023, umjesto @SpringBootTest ubacio @WebMvcTest ,
                                     // želimo ogrančiti testove samo na BeerController klasu.
 
+@Import(SpringSecConfig.class)
 class BeerControllerTest {
 
     // @Autowired
@@ -57,9 +61,15 @@ class BeerControllerTest {
         beerServiceImpl = new BeerServiceImpl();
     }
 
+    public static final  String USERNAME = "user1";
+    public static  final  String PASSWORD = "password";
+
+
     @Test
     void testCreateBeerNullBeerName() throws Exception {
         BeerDTO beerDTO = BeerDTO.builder().build();  //napravi prazan objekt
+
+
 
         given(beerService.saveNewBeer(any(BeerDTO.class))).willReturn(beerServiceImpl.listBeers(null, null, false, 1, 25).getContent().get(0));
 
@@ -132,6 +142,7 @@ class BeerControllerTest {
         // i ovo ćemo refaktorirati
         // mockMvc.perform(patch(BeerController.BEER_PATH + "/" + beer.getId())
         mockMvc.perform(patch(BeerController.BEER_PATH_ID , beer.getId())  //sad će se beer.getId() bindati u BEER_PATH_ID automatski, jer postoji overload-ana patch metoda koja može prihvatiti i ovakav način predaje argumenata
+                        .with(httpBasic(USERNAME, PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(beerMap)))
@@ -190,7 +201,7 @@ class BeerControllerTest {
         given(beerService.updateBeerById(any(), any())).willReturn(Optional.of(beer));  //ovo je neki trik, da se ne mora zapravo napraviti pravi update, nego samo vratiti objekt -> NIJE MI OVO BAŠ JASNO, ali bez toga puca
 
         // mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
-        mockMvc.perform(put(BeerController.BEER_PATH_ID,  beer.getId())
+        mockMvc.perform(put(BeerController.BEER_PATH_ID, beer.getId()).with(httpBasic(USERNAME, PASSWORD))
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(beer)))
@@ -210,6 +221,7 @@ class BeerControllerTest {
 
         // mockMvc.perform(put(BeerController.BEER_PATH + "/" + beer.getId())
         mockMvc.perform(put(BeerController.BEER_PATH_ID,  beer.getId())
+                .with(httpBasic(USERNAME, PASSWORD))
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(beer)))
@@ -224,6 +236,7 @@ class BeerControllerTest {
         given(beerService.listBeers(any(), any(), any(), any(), any())).willReturn(beerServiceImpl.listBeers(null, null, false, 1, 25));
 
         mockMvc.perform(get(BeerController.BEER_PATH )
+                        .with(httpBasic("USERNAME", "PASSWORD"))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -241,7 +254,7 @@ class BeerControllerTest {
 
         given(beerService.getBeerById((any(UUID.class)))).willReturn(Optional.empty());
 
-        mockMvc.perform(get(BeerController.BEER_PATH_ID, UUID.randomUUID()))
+        mockMvc.perform(get(BeerController.BEER_PATH_ID, UUID.randomUUID()). with(httpBasic(USERNAME, PASSWORD)))
                 .andExpect(status().isNotFound());
 
     }
