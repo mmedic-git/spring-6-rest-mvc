@@ -141,6 +141,7 @@ class CustomerControllerTest {
 
         mockMvc.perform(post(CustomerController.CUSTOMER_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(httpBasic(BeerControllerTest.USERNAME, BeerControllerTest.PASSWORD))
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(customer)))
                         .andExpect(status().isCreated())
